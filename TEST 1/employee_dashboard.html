@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        #photo-display {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-top: 1rem;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js"></script>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-semibold text-gray-800 mb-6">Welcome, <span id="username-display"></span></h1>
+
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <div class="mb-4">
+                <button class="tab-button bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2" data-tab="profile">Profile</button>
+                <button class="tab-button bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2" data-tab="data-entry">Data Entry</button>
+                <button class="tab-button bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" data-tab="leave-request">Leave Request</button>
+            </div>
+
+            <div id="profile" class="tab-content active">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Profile</h2>
+                <div id="profile-data" class="text-gray-600">
+                    <p>Loading profile data...</p>
+                </div>
+            </div>
+
+            <div id="data-entry" class="tab-content">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Data Entry</h2>
+                <form id="data-entry-form" class="space-y-4">
+                    <div>
+                        <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name:</label>
+                        <input type="text" id="name" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="mobile" class="block text-gray-700 text-sm font-bold mb-2">Mobile Number:</label>
+                        <input type="tel" id="mobile" name="mobile" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="photo" class="block text-gray-700 text-sm font-bold mb-2">Photo:</label>
+                        <input type="file" id="photo" name="photo" accept="image/*" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                         <img id="photo-display" src="#" alt="Profile Photo" class="hidden">
+                    </div>
+                    <div id="edit-button-container" class="hidden">
+                        <button type="button" id="edit-data-button" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Edit Data</button>
+                    </div>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit Data</button>
+                </form>
+                 <div id="data-entry-message" class="mt-4 p-3 rounded-md text-center font-medium hidden"></div>
+            </div>
+
+            <div id="leave-request" class="tab-content">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Leave Request</h2>
+                <p class="text-gray-600">You can submit your leave requests here.</p>
+                 <form id="leave-request-form" class="space-y-4">
+                    <div>
+                        <label for="leave-start-date" class="block text-gray-700 text-sm font-bold mb-2">Start Date:</label>
+                        <input type="date" id="leave-start-date" name="leave-start-date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="leave-end-date" class="block text-gray-700 text-sm font-bold mb-2">End Date:</label>
+                        <input type="date" id="leave-end-date" name="leave-end-date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div>
+                        <label for="leave-reason" class="block text-gray-700 text-sm font-bold mb-2">Reason:</label>
+                        <textarea id="leave-reason" name="leave-reason" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                    </div>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit Leave Request</button>
+                </form>
+                <div id="leave-request-message" class="mt-4 p-3 rounded-md text-center font-medium hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+        document.getElementById("username-display").textContent = username;
+
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tab = button.dataset.tab;
+                tabButtons.forEach(b => b.classList.remove('bg-gray-400', 'text-gray-700'));
+                tabButtons.forEach(b => b.classList.add('bg-gray-300', 'text-gray-700'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                button.classList.remove('bg-gray-300', 'text-gray-700');
+                button.classList.add('bg-gray-400', 'text-gray-700');
+                document.getElementById(tab).classList.add('active');
+            });
+        });
+
+        // Google Sheet URL (Published CSV URL)
+        const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-Lz_KFFnF-KZe-fH-R7M-KstQj-U9L9y-v8vjT9fKxKxKPAfKBe57wL4v6fIPEfJA/pub?gid=0&single=true&output=csv"; // Replace with your published sheet URL
+
+        let userData = {}; // Store user data in a global variable
+
+        // Function to fetch and display data from Google Sheet
+        function fetchProfileData() {
+            Tabletop.init({
+                key: googleSheetUrl,
+                callback: function(data, tabletop) {
+                    // `data` is an array of objects.  Each object represents a row in your sheet.
+                    //  We'll try to find the row matching the current username.
+                    const userProfile = data.find(row => row.Username === username); // IMPORTANT: Adjust 'Username' to the actual column name in your sheet
+
+                    if (userProfile) {
+                        let profileHTML = `<p><strong>Name:</strong> ${userProfile.Name || 'N/A'}</p>`; // Adjust 'Name'
+                        profileHTML += `<p><strong>Mobile:</strong> ${userProfile.Mobile || 'N/A'}</p>`;  // Adjust 'Mobile'
+                        const photoUrl = userProfile.Photo; // Adjust 'Photo'
+                        if (photoUrl) {
+                            profileHTML += `<img id="photo-display" src="${photoUrl}" alt="Profile Photo">`;
+                        }
+
+                        document.getElementById('profile-data').innerHTML = profileHTML;
+                    } else {
+                        document.getElementById('profile-data').innerHTML = `<p class="text-red-500">Profile data not found for user: ${username}</p>`;
+                    }
+                },
+                simpleSheet: true, // This assumes your first sheet has the data
+                parseNumbers: true
+            });
+        }
+
+        // Call fetchProfileData when the profile tab is activated.
+        document.querySelector('[data-tab="profile"]').addEventListener('click', fetchProfileData);
+
+
+
+        function loadExistingData() {
+            const storedData = localStorage.getItem(username);
+            if (storedData) {
+                userData = JSON.parse(storedData);
+                document.getElementById('name').value = userData.name || '';
+                document.getElementById('mobile').value = userData.mobile || '';
+                const photoDisplay = document.getElementById('photo-display');
+                if (userData.photo) {
+                    photoDisplay.src = userData.photo;
+                    photoDisplay.classList.remove('hidden');
+                } else {
+                    photoDisplay.classList.add('hidden');
+                }
+
+                // Show the edit button
+                document.getElementById('edit-button-container').classList.remove('hidden');
+                document.querySelector('[type="submit"]').classList.add('hidden');
+            } else {
+                // Hide the edit button
+                document.getElementById('edit-button-container').classList.add('hidden');
+                document.querySelector('[type="submit"]').classList.remove('hidden');
+            }
+        }
+
+        loadExistingData(); // Call this function when the data entry tab is loaded
+
+
+
+        document.getElementById('edit-data-button').addEventListener('click', (event) => {
+            event.preventDefault();
+             // Re-enable the input fields
+            document.getElementById('name').disabled = false;
+            document.getElementById('mobile').disabled = false;
+            document.getElementById('photo').disabled = false;
+
+            // Show the submit button and hide the edit button
+            document.querySelector('[type="submit"]').classList.remove('hidden');
+            document.getElementById('edit-button-container').classList.add('hidden');
+
+        });
+
+
+
+        document.getElementById('data-entry-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const name = event.target.name.value.trim();
+            const mobile = event.target.mobile.value.trim();
+            const photoInput = event.target.photo;
+            const photoFile = photoInput.files[0];
+
+            const messageArea = document.getElementById("data-entry-message");
+            messageArea.classList.remove("hidden");
+
+            let photoURL = "";
+            if (photoFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    photoURL = e.target.result;
+                     storeData(name, mobile, photoURL);
+                };
+                reader.readAsDataURL(photoFile);
+            }
+            else{
+                storeData(name, mobile, photoURL);
+            }
+
+            function storeData(name, mobile, photoURL){
+                userData = {
+                    name: name,
+                    mobile: mobile,
+                    photo: photoURL,
+                };
+                localStorage.setItem(username, JSON.stringify(userData));
+                messageArea.textContent = "Data submitted successfully!";
+                messageArea.classList.remove("bg-red-100", "text-red-700", "border-red-400");
+                messageArea.classList.add("bg-green-100", "text-green-700", "border-green-400");
+                 // Disable the form fields after submit
+                document.getElementById('name').disabled = true;
+                document.getElementById('mobile').disabled = true;
+                document.getElementById('photo').disabled = true;
+                event.target.reset();
+                loadExistingData();
+
+            }
+
+        });
+
+        document.getElementById('photo').addEventListener('change', (event) => {
+            const photoDisplay = document.getElementById('photo-display');
+            const photoFile = event.target.files[0];
+
+            if (photoFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    photoDisplay.src = e.target.result;
+                    photoDisplay.classList.remove('hidden');
+                };
+                reader.readAsDataURL(photoFile);
+            } else {
+                photoDisplay.src = "#";
+                photoDisplay.classList.add('hidden');
+            }
+        });
+
+
+
+        document.getElementById('leave-request-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const startDate = event.target['leave-start-date'].value;
+            const endDate = event.target['leave-end-date'].value;
+            const reason = event.target['leave-reason'].value.trim();
+
+            const messageArea = document.getElementById("leave-request-message");
+            messageArea.classList.remove("hidden");
+
+            if (startDate && endDate && reason) {
+                messageArea.textContent = "Leave request submitted successfully!";
+                messageArea.classList.remove("bg-red-100", "text-red-700", "border-red-400");
+                messageArea.classList.add("bg-green-100", "text-green-700", "border-green-400");
+                console.log({startDate, endDate, reason});
+                event.target.reset();
+            } else {
+                messageArea.textContent = "Please fill in all fields!";
+                messageArea.classList.remove("bg-green-100", "text-green-700", "border-red-400");
+                messageArea.classList.add("bg-red-100", "text-red-700", "border-red-400");
+            }
+        });
+    </script>
+</body>
+</html>
